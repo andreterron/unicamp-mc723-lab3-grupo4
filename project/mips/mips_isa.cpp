@@ -41,6 +41,17 @@ using namespace mips_parms;
 static int processors_started = 0;
 #define DEFAULT_STACK_SIZE (256*1024)
 
+void mips_isa::PauseProcessor()
+{
+  pause = 1;
+}
+
+void mips_isa::ResumeProcessor()
+{
+  pause = 0;
+}
+
+
 //!Generic instruction behavior method.
 void ac_behavior( instruction )
 { 
@@ -50,7 +61,11 @@ void ac_behavior( instruction )
   ac_pc = npc;
   npc = ac_pc + 4;
 #endif 
-};
+
+  while (pause) {
+    wait(1, SC_NS);
+  }
+}
  
 //! Instruction Format behavior methods.
 void ac_behavior( Type_R ){}
@@ -63,6 +78,7 @@ void ac_behavior(begin)
   dbg_printf("@@@ begin behavior @@@\n");
   RB[0] = 0;
   npc = ac_pc + 4;
+  pause = 0;
 
   // Is is not required by the architecture, but makes debug really easier
   for (int regNum = 0; regNum < 32; regNum ++)
