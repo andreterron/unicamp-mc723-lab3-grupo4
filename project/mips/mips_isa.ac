@@ -111,6 +111,14 @@ AC_ISA(mips){
     swl.set_asm("swl %reg, %imm (%reg)", rt, imm, rs);
     swl.set_decoder(op=0x2A);
 
+    //sc.set_asm("sc %reg, (%reg)", rt, rs, imm=0);
+    //sc.set_asm("sc %reg, %imm (%reg)", rt, imm, rs);
+    //sc.set_decoder(op=0x2A); // ADD OPCODE
+
+    //ll.set_asm("sc %reg, (%reg)", rt, rs, imm=0);
+    //ll.set_asm("sc %reg, %imm (%reg)", rt, imm, rs);
+    //ll.set_decoder(op=0x2A); // ADD OPCODE
+
     swr.set_asm("swr %reg, (%reg)", rt, rs, imm=0);
     swr.set_asm("swr %reg, %imm (%reg)", rt, imm, rs);
     swr.set_decoder(op=0x2E);

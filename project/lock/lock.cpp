@@ -34,43 +34,54 @@
 // SystemC includes
 // ArchC includes
 
-#include "bus.h"
+#include "lock.h"
 
 //////////////////////////////////////////////////////////////////////////////
 
 
 /// Constructor
-ac_tlm_bus::ac_tlm_bus(sc_module_name module_name):
-  sc_module(module_name),
-  target_export("iport"),
-  MEM_port("MEM_port", 5242880U), // This is the memory port, assigned for 5MB
-  LOCK_port("LOCK_port", 5242880U)
+ac_tlm_lock::ac_tlm_lock( sc_module_name module_name, int k) :
+  sc_module( module_name ),
+  target_export("iport")
 {
     /// Binds target_export to the memory
-    target_export(*this);
+    target_export( *this );
+
+    /// Initialize memory vector
+    lock = 0;
 
 }
 
 /// Destructor
-ac_tlm_bus::~ac_tlm_bus() 
-{
+ac_tlm_lock::~ac_tlm_lock() {
+
+  //delete lock;
 }
 
-/// This is the transport method. Everything should go through this file.
-/// To connect more components, you will need to have an if/then/else or a switch
-/// statement inside this method. Notice that ac_tlm_req has an address field.
-ac_tlm_rsp ac_tlm_bus::transport(const ac_tlm_req &request) 
+/** Internal Write
+  * Note: Always write 32 bits
+  * @param a is the address to write
+  * @param d id the data being write
+  * @returns A TLM response packet with SUCCESS
+*/
+ac_tlm_rsp_status ac_tlm_lock::writem( const uint32_t &a , const uint32_t &d )
 {
-    ac_tlm_rsp response;
-    
-    if(request.addr < 0x800000)
-    	response = MEM_port->transport(request);
-    else
-    	response = LOCK_port->transport(request);
-
-    return response;
+  lock = d;
+  return SUCCESS;
 }
 
+/** Internal Read
+  * Note: Always read 32 bits
+  * @param a is the address to read
+  * @param d id the data that will be read
+  * @returns A TLM response packet with SUCCESS and a modified d
+*/
+ac_tlm_rsp_status ac_tlm_lock::readm( const uint32_t &a , uint32_t &d )
+{
+  d = lock;
+  lock = 1;
+  return SUCCESS;
+}
 
 
 
