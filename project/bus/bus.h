@@ -43,6 +43,8 @@
 #include "ac_tlm_protocol.H"
 #include  "ac_tlm_port.H"
 
+#include <vector>
+
 //////////////////////////////////////////////////////////////////////////////
 
 // using statements
@@ -52,6 +54,7 @@ using tlm::tlm_transport_if;
 
 //#define DEBUG
 
+class mips;
 
 /// A TLM memory
 class ac_tlm_bus :
@@ -63,6 +66,7 @@ public:
   sc_export<ac_tlm_transport_if> target_export;
   ac_tlm_port MEM_port;
   ac_tlm_port LOCK_port;
+  std::vector<mips*> mProcessors;
 
   /**
    * Implementation of TLM transport method that
@@ -73,6 +77,7 @@ public:
   */
   ac_tlm_rsp transport(const ac_tlm_req &request);
 
+  void AddProcessor(mips* p);
 
   /**
    * Default constructor.
