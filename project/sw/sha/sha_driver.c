@@ -20,7 +20,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <pthread.h>
+#include "../lib_pthread.h"
 #include "sha.h"
 
 #define MAX_NO_FILES 16
@@ -40,8 +40,8 @@ struct fileData{
 	  int size;
 }Tdata[MAX_NO_FILES];
 
-char* in_file_list[]={"in_file1.asc","in_file2.asc","in_file3.asc","in_file4.asc","in_file5.asc","in_file6.asc","in_file7.asc","in_file8.asc","in_file9.asc","in_file10.asc","in_file11.asc","in_file12.asc","in_file13.asc","in_file14.asc","in_file15.asc","in_file16.asc",NULL};
-char* out_file_list[]={"out_file1.txt","out_file2.txt","out_file3.txt","out_file4.txt","out_file5.txt","out_file6.txt","out_file7.txt","out_file8.txt",NULL};
+char* in_file_list[]={"sw/sha/in_file1.asc",NULL};//,"in_file2.asc","in_file3.asc","in_file4.asc","in_file5.asc","in_file6.asc","in_file7.asc","in_file8.asc","in_file9.asc","in_file10.asc","in_file11.asc","in_file12.asc","in_file13.asc","in_file14.asc","in_file15.asc","in_file16.asc",NULL};
+char* out_file_list[]={"sw/sha/out_file1.txt",NULL};//,"out_file2.txt","out_file3.txt","out_file4.txt","out_file5.txt","out_file6.txt","out_file7.txt","out_file8.txt",NULL};
 
 
 int no_files=16;

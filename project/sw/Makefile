@@ -6,6 +6,7 @@ CC = mips-elf-gcc
 CFLAGS = -msoft-float -specs=archc
 LDFLAGS = -lm
 
+SUB_FOLDERS = sha
 TARGET = hello_world.mips
 INC_DIR := -I.
 
@@ -20,6 +21,8 @@ OBJS := $(SRCS:.c=.o)
 
 #------------------------------------------------------
 all: $(OBJS)
+	for a in $(SUB_FOLDERS); do echo " => Making" $$a ...; \
+	    cd $$a; $(MAKE); cd ..; done
 	$(CC) $(OBJS) $(CFLAGS) -o $(TARGET) $(LDFLAGS)
 #------------------------------------------------------
 clean:

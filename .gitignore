@@ -32,4 +32,4 @@
 *.dSYM/
 
 project/platform.x
-project/sw/hello_world.mips
+*.mips
