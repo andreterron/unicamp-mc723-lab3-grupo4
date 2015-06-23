@@ -9,7 +9,7 @@ LDFLAGS = -lm
 TARGET = hello_world.mips
 INC_DIR := -I.
 
-SRCS := hello_world.c
+SRCS := hello_world.c lib_pthread.c
 OBJS := $(SRCS:.c=.o)
 
 #------------------------------------------------------
