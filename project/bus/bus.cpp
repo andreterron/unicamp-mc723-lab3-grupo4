@@ -35,8 +35,6 @@
 // ArchC includes
 
 #include "bus.h"
-#include <vector>
-#include "mips/mips.H"
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -47,20 +45,15 @@ ac_tlm_bus::ac_tlm_bus(sc_module_name module_name):
     target_export("iport"),
     MEM_port("MEM_port", 5242880U), // This is the memory port, assigned for 5MB
     LOCK_port("LOCK_port", 5242880U),
-    mProcessors()
+    PROC_port("PROC_port", 8)
 {
     /// Binds target_export to the memory
     target_export(*this);
-
 }
 
 /// Destructor
 ac_tlm_bus::~ac_tlm_bus()
 {
-}
-
-void ac_tlm_bus::AddProcessor(mips* p) {
-    mProcessors.push_back(p);
 }
 
 /// This is the transport method. Everything should go through this file.
@@ -78,17 +71,12 @@ ac_tlm_rsp ac_tlm_bus::transport(const ac_tlm_req &request)
     } else if (request.addr < PROC_CTRL_START) {
         response = LOCK_port->transport(request);
     } else {
-        int procId = request.addr - PROC_CTRL_START;
+        ac_tlm_req newReq(request);
+        newReq.addr -= PROC_CTRL_START;
 
-        mProcessors[procId-1]->ISA.PauseProcessor();
-        printf("Starting procesor %d\nData: %p\n", procId, request.data);
-        mProcessors[procId]->set_ac_pc(request.data);
-        mProcessors[procId]->ISA.ResumeProcessor();
+        PROC_port->transport(newReq);
     }
 
     return response;
 }
-
-
-
 

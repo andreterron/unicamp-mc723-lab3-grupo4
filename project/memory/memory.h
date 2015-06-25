@@ -73,7 +73,6 @@ public:
    * @return A response packet to be send
   */
   ac_tlm_rsp transport( const ac_tlm_req &request ) {
-
     ac_tlm_rsp response;
 
     switch( request.type ) {

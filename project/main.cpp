@@ -21,13 +21,12 @@ const char *archc_options="-abi -dy ";
 
 #include <systemc.h>
 #include "mips.H"
+#include "multiprocessor.h"
 #include "memory.h"
 #include "bus.h"
-#include "lock.h"
+#include "memory_lock.h"
 #include <string.h>
 
-
-const unsigned int NPROCS = 8;
 
 int sc_main(int ac, char *av[])
 {
@@ -35,50 +34,27 @@ int sc_main(int ac, char *av[])
     ac_tlm_bus bus("bus");
     // Memory
     ac_tlm_mem mem("mem");
-    ac_tlm_lock lock("lock");
+    memory_lock lock("memory_lock");
     //!  ISA simulator
-    mips** procs = new mips*[NPROCS];
-    for (int p = 0; p < NPROCS; p++) {
-        char procId[10];
-        snprintf(procId, 10, "mips%d", p);
-        procs[p] = new mips(procId);
-        bus.AddProcessor(procs[p]);
-    }
+    multiprocessor<mips, 8> multimips("multimips");
 
 #ifdef AC_DEBUG
-    char buf[64];
-    for (int p = 0; p < NPROCS; p++) {
-        snprintf(buf, 64, "mips_proc%d.trace", p);
-        ac_trace(buf);
-    }
+    //char buf[64];
+    //for (int p = 0; p < NPROCS; p++) {
+    //    snprintf(buf, 64, "mips_proc%d.trace", p);
+    //    ac_trace(buf);
+    //}
 #endif
 
-    for (int p = 0; p < NPROCS; p++) {
-        procs[p]->DM_port(bus.target_export);
-    }
+    multimips.connect_DM_ports(bus.target_export);
     bus.MEM_port(mem.target_export);
     bus.LOCK_port(lock.target_export);
+    bus.PROC_port(multimips.target_export);
 
-    char*** args = new char**[NPROCS];
-    for (int p = 0; p < NPROCS; p++) {
-        args[p] = new char*[ac];
-        for (int i = 0; i < ac; i++) {
-            args[p][i] = strdup(av[i]);
-        }
-        procs[p]->init(ac,args[p]);
-        if ( p > 0 ) {
-            procs[p]->ISA.PauseProcessor();
-        }
-    }
-    cerr << endl;
-
+    multimips.init(ac, av, true);
     sc_start();
 
-    for (int p = 0; p < NPROCS; p++) {
-        procs[p]->PrintStat();
-    }
-    cerr << endl;
-
+    multimips.PrintStat();
 #ifdef AC_STATS
     //mips1_proc1.ac_sim_stats.time = sc_simulation_time();
     //mips2_proc2.ac_sim_stats.time = sc_simulation_time();
@@ -90,24 +66,5 @@ int sc_main(int ac, char *av[])
     ac_close_trace();
 #endif
 
-    for (int p = 0; p < NPROCS; p++) {
-        for (int i = 0; i < ac; i++) {
-            if (args[p][i] != NULL) {
-                free(args[p][i]);
-                args[p][i] = NULL;
-            }
-        }
-        delete procs[p];
-        delete args[p];
-        procs[p] = NULL;
-        args[p] = NULL;
-    }
-    delete[] procs;
-    delete[] args;
-
-    int retCode = 0;
-    for (int p = 0; p < NPROCS; p++) {
-        retCode += procs[p]->ac_exit_status;
-    }
-    return retCode;
+    return multimips.get_exit_status();
 }
