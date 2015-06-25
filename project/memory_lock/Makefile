@@ -1,11 +1,11 @@
 # ####################################################
-# TLM lock with TLM interface (ArchC 2x compliant)
+# TLM memory_lock with TLM interface (ArchC 2x compliant)
 # ####################################################
 
-TARGET=lock
+TARGET=memory_lock
 INC_DIR := -I. -I$(ARCHC_PATH)/include/archc -I$(SYSTEMC)/include -I$(TLM_PATH) 
 
-SRCS := lock.cpp
+SRCS := memory_lock.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 #------------------------------------------------------
@@ -16,7 +16,7 @@ OBJS := $(SRCS:.cpp=.o)
 lib: all
 	ar r lib$(TARGET).a $(OBJS)
 #------------------------------------------------------
-all: $(OBJS) lock.h
+all: $(OBJS) memory_lock.h
 #------------------------------------------------------
 clean:
 	rm -f $(OBJS) *~ *.o *.a
