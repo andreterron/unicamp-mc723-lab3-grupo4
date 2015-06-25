@@ -58,37 +58,34 @@ class mips;
 
 /// A TLM memory
 class ac_tlm_bus :
-  public sc_module,
-  public ac_tlm_transport_if // Using ArchC TLM protocol
+    public sc_module,
+    public ac_tlm_transport_if // Using ArchC TLM protocol
 {
 public:
-  /// Exposed port with ArchC interface
-  sc_export<ac_tlm_transport_if> target_export;
-  ac_tlm_port MEM_port;
-  ac_tlm_port LOCK_port;
-  std::vector<mips*> mProcessors;
+    /// Exposed port with ArchC interface
+    sc_export<ac_tlm_transport_if> target_export;
+    ac_tlm_port MEM_port;
+    ac_tlm_port LOCK_port;
+    ac_tlm_port PROC_port;
 
-  /**
-   * Implementation of TLM transport method that
-   * handle packets of the protocol doing apropriate actions.
-   * This method must be implemented (required by SystemC TLM).
-   * @param request is a received request packet
-   * @return A response packet to be send
-  */
-  ac_tlm_rsp transport(const ac_tlm_req &request);
+    /**
+     * Implementation of TLM transport method that
+     * handle packets of the protocol doing apropriate actions.
+     * This method must be implemented (required by SystemC TLM).
+     * @param request is a received request packet
+     * @return A response packet to be send
+     */
+    ac_tlm_rsp transport(const ac_tlm_req &request);
 
-  void AddProcessor(mips* p);
+    /**
+     * Default constructor.
+     */
+    ac_tlm_bus(sc_module_name module_name);
 
-  /**
-   * Default constructor.
-   */
-  ac_tlm_bus(sc_module_name module_name);
-
-  /**
-   * Default destructor.
-   */
-  ~ac_tlm_bus();
-
+    /**
+     * Default destructor.
+     */
+    ~ac_tlm_bus();
 };
 
 #endif //_BUS_H_
