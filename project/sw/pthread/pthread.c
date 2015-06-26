@@ -2,7 +2,7 @@
 
 #include "uos.h"
 
-#define PTHREAD_DEBUG
+//#define PTHREAD_DEBUG
 #ifdef PTHREAD_DEBUG
 #include <stdio.h>
 #endif

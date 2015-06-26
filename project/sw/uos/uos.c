@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define UOS_DEBUG
+//#define UOS_DEBUG
 #ifdef UOS_DEBUG
 #include <stdio.h>
 #endif
