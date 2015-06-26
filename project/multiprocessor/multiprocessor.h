@@ -27,7 +27,7 @@ public:
         ,   target_export("iport")
         ,   mProcessors()
         ,   mArgC(0)
-        ,   mArgV(NULL)
+        ,   mArgV()
     {
         target_export(*this);
 
@@ -36,6 +36,7 @@ public:
             snprintf(buf,64,"%s_p%d",(const char*)module_name,p);
             mProcessors[p] = new T(buf);
         }
+        memset(mProcessorData, 0xFF, NPROCS * sizeof(mProcessorData[0]));
     }
 
     ~multiprocessor()
@@ -55,11 +56,14 @@ public:
     {
         ac_tlm_rsp response;
         switch ( request.type ) {
+        case READ:
+            response.status = read_data(request.addr, response.data);
+            break;
         case WRITE:
-            if ( request.data == 0 ) {
-                response.status = stop_processor(request.addr);
+            if ( request.data == 0xFFFFFFFF ) {
+                response.status = stop_processor(request.addr, request.data);
             } else {
-                response.status = start_processor(request.addr);
+                response.status = start_processor(request.addr, request.data);
             }
             break;
         default :
@@ -110,13 +114,30 @@ public:
     }
 
 private:
-    ac_tlm_rsp_status start_processor(const uint32_t& proc_id)
+    ac_tlm_rsp_status read_data(const uint32_t& proc_id, uint32_t& data) {
+        ac_tlm_rsp_status status = ERROR;
+        if ( proc_id < NPROCS ) {
+#ifdef DEBUG
+            std::cout << "Reading processor: " << proc_id << std::endl;
+#endif
+            data = mProcessorData[proc_id];
+            status = SUCCESS;
+        } else {
+#ifdef DEBUG
+            std::cout << "Invalid processor: " << proc_id << std::endl;
+#endif
+        }
+        return status;
+    }
+
+    ac_tlm_rsp_status start_processor(const uint32_t& proc_id, const uint32_t& data)
     {
         ac_tlm_rsp_status status = ERROR;
         if ( proc_id < NPROCS ) {
 #ifdef DEBUG
             std::cout << "Starting processor: " << proc_id << std::endl;
 #endif
+            mProcessorData[proc_id] = data;
             mProcessors[proc_id]->ISA.ResumeProcessor();
             status = SUCCESS;
         } else {
@@ -126,13 +147,14 @@ private:
         }
         return status;
     }
-    ac_tlm_rsp_status stop_processor(const uint32_t& proc_id)
+    ac_tlm_rsp_status stop_processor(const uint32_t& proc_id, const uint32_t& data)
     {
         ac_tlm_rsp_status status = ERROR;
         if ( proc_id < NPROCS ) {
 #ifdef DEBUG
             std::cout << "Stopping processor: " << proc_id << std::endl;
 #endif
+            mProcessorData[proc_id] = data;
             mProcessors[proc_id]->ISA.PauseProcessor();
             status = SUCCESS;
         } else {
@@ -148,8 +170,9 @@ public:
 
 private:
     T*          mProcessors[NPROCS];
+    uint32_t    mProcessorData[NPROCS];
     int         mArgC;
-    char***     mArgV;
+    char**      mArgV[NPROCS];
 };
 
 #endif //_MULTIPROCESSOR_H_

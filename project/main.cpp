@@ -30,12 +30,13 @@ const char *archc_options="-abi -dy ";
 
 int sc_main(int ac, char *av[])
 {
-    //! Bus
+    // Bus
     ac_tlm_bus bus("bus");
     // Memory
     ac_tlm_mem mem("mem");
+    // Memory lock
     memory_lock lock("memory_lock");
-    //!  ISA simulator
+    // ISA simulator
     multiprocessor<mips, 8> multimips("multimips");
 
 #ifdef AC_DEBUG
@@ -46,12 +47,16 @@ int sc_main(int ac, char *av[])
     //}
 #endif
 
+    printf("Connecting ports\n");
     multimips.connect_DM_ports(bus.target_export);
     bus.MEM_port(mem.target_export);
     bus.LOCK_port(lock.target_export);
     bus.PROC_port(multimips.target_export);
 
+    printf("Initializing\n");
     multimips.init(ac, av, true);
+
+    printf("Running simulation\n");
     sc_start();
 
     multimips.PrintStat();
