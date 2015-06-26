@@ -38,6 +38,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
+//#define BUS_DEBUG
 
 /// Constructor
 ac_tlm_bus::ac_tlm_bus(sc_module_name module_name):
@@ -63,18 +64,29 @@ ac_tlm_rsp ac_tlm_bus::transport(const ac_tlm_req &request)
 {
     ac_tlm_rsp response;
 
-    const unsigned int LOCK_START = 0x800000;
-    const unsigned int PROC_CTRL_START = (LOCK_START << 1);
+    const unsigned int LOCK_BASE = 0x800000;
+    const unsigned int PROC_BASE = (LOCK_BASE << 1);
 
-    if(request.addr < LOCK_START) {
+    ac_tlm_req tmp(request);
+    if(request.addr < LOCK_BASE) {
+#ifdef BUS_DEBUG
+//        std::cerr << "bus) Transporting MEM. req={.addr=" << request.addr << ", .data=" << request.data << "}" << std::endl;
+#endif
         response = MEM_port->transport(request);
-    } else if (request.addr < PROC_CTRL_START) {
-        response = LOCK_port->transport(request);
+    } else if (request.addr < PROC_BASE) {
+#ifdef BUS_DEBUG
+        std::cerr << "bus) Transporting LOCK. req={.addr=" << request.addr << ", .data=" << request.data << "}" << std::endl;
+        std::cerr << "bus) Transporting LOCK. tmp={.addr=" << tmp.addr << ", .data=" << tmp.data << "}" << std::endl;
+#endif
+        tmp.addr -= LOCK_BASE;
+        response = LOCK_port->transport(tmp);
     } else {
-        ac_tlm_req newReq(request);
-        newReq.addr -= PROC_CTRL_START;
-
-        PROC_port->transport(newReq);
+#ifdef BUS_DEBUG
+        std::cerr << "bus) Transporting PROC. req={.addr=" << request.addr << ", .data=" << request.data << "}" << std::endl;
+        std::cerr << "bus) Transporting PROC. tmp={.addr=" << tmp.addr << ", .data=" << tmp.data << "}" << std::endl;
+#endif
+        tmp.addr -= PROC_BASE;
+        response = PROC_port->transport(tmp);
     }
 
     return response;

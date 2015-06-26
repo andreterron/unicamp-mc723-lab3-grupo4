@@ -35,7 +35,7 @@ public:
     sc_export<ac_tlm_transport_if>  target_export;
 
 private:
-    char*       mLock;
+    uint8_t*    mLock;
     int         mSize;
 };
 
