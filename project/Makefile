@@ -35,8 +35,6 @@ export CFLAGS:=-g
 
 export CC:=g++
 
-
-
 all: 
 	for c in $(COMPONENTS); do echo " => Making" $$c ...; \
 	    cd $$c; $(MAKE); cd ..; done
@@ -67,7 +65,7 @@ main.o:
 #all: $(EXE)
 #------------------------------------------------------
 run: $(EXE)
-	./$(EXE) --load=sw/hello_world.mips
+	./$(EXE) --load=sw/demo_app.mips
 #------------------------------------------------------
 #------------------------------------------------------
 distclean: clean
