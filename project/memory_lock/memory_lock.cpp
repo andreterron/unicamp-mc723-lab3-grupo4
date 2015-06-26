@@ -1,5 +1,7 @@
 #include "memory_lock.h"
 
+//#define DEBUG
+
 memory_lock::memory_lock(sc_module_name module_name, int k)
     :   sc_module(module_name)
     ,   target_export("iport")
@@ -8,8 +10,8 @@ memory_lock::memory_lock(sc_module_name module_name, int k)
 {
     target_export(*this);
 
-    mLock = new char[k];
-    memset(mLock, 0, k * sizeof(char));
+    mLock = new uint8_t[k];
+    memset(mLock, 0, k * sizeof(uint8_t));
 }
 
 memory_lock::~memory_lock()
@@ -40,7 +42,10 @@ ac_tlm_rsp_status memory_lock::writem(const uint32_t& a, const uint32_t& d)
 {
     ac_tlm_rsp_status status = ERROR;
     if ( a < mSize ) {
-        mLock[a] = d;
+        *((uint32_t *) &mLock[a]) = *((uint32_t *) &d);
+#ifdef DEBUG
+        std::cerr << "Writing to memory lock. mLock[" << std::hex << a << "] = " << d << std::endl;
+#endif
         status = SUCCESS;
     } else {
         std::cerr << "Lock memory out of bounds: " << a << std::endl;
@@ -52,8 +57,11 @@ ac_tlm_rsp_status memory_lock::readm(const uint32_t& a, uint32_t& d)
 {
     ac_tlm_rsp_status status = ERROR;
     if ( a < mSize ) {
-        d = mLock[a];
-        mLock[a] = 1;
+        *((uint32_t *) &d) = *((uint32_t *) &mLock[a]);
+        *((uint32_t *) &mLock[a]) = 1;
+#ifdef DEBUG
+        std::cerr << "Reading memory lock. mLock[" << std::hex << a << "] = " << d << std::endl;
+#endif
         status = SUCCESS;
     } else {
         std::cerr << "Lock memory out of bounds: " << a << std::endl;

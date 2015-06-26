@@ -4,6 +4,8 @@
 #include <systemc>
 #include "ac_tlm_protocol.H"
 
+//#define MMS_DEBUG
+
 using tlm::tlm_transport_if;
 
 #ifndef SAFE_FREE
@@ -36,7 +38,11 @@ public:
             snprintf(buf,64,"%s_p%d",(const char*)module_name,p);
             mProcessors[p] = new T(buf);
         }
-        memset(mProcessorData, 0xFF, NPROCS * sizeof(mProcessorData[0]));
+        memset(mProcessorData, 0xFF, NPROCS * sizeof(uint32_t));
+        mProcessorData[0] = 0;
+        mProcessorData[1] = 0;
+        mProcessorData[2] = 0;
+        mProcessorData[3] = 0;
     }
 
     ~multiprocessor()
@@ -57,16 +63,16 @@ public:
         ac_tlm_rsp response;
         switch ( request.type ) {
         case READ:
-            response.status = read_data(request.addr, response.data);
+            response.status = read_data(request.addr/4, response.data);
             break;
         case WRITE:
             if ( request.data == 0xFFFFFFFF ) {
-                response.status = stop_processor(request.addr, request.data);
+                response.status = stop_processor(request.addr/4, request.data);
             } else {
-                response.status = start_processor(request.addr, request.data);
+                response.status = start_processor(request.addr/4, request.data);
             }
             break;
-        default :
+        default:
             response.status = ERROR;
             break;
         }
@@ -77,7 +83,7 @@ public:
     {
         for ( int p = 0; p < NPROCS; p++ ) {
             mProcessors[p]->DM_port(target);
-         }
+        }
     }
 
     void init(int argc, char* argv[], const bool pause_others = true)
@@ -117,14 +123,14 @@ private:
     ac_tlm_rsp_status read_data(const uint32_t& proc_id, uint32_t& data) {
         ac_tlm_rsp_status status = ERROR;
         if ( proc_id < NPROCS ) {
-#ifdef DEBUG
-            std::cout << "Reading processor: " << proc_id << std::endl;
+            *((uint32_t*)&data) = *((uint32_t*)&mProcessorData[proc_id*4]);
+#ifdef MMS_DEBUG
+            std::cout << "mms) Reading processor. pid=" << proc_id << ", data=" << data << std::endl;
 #endif
-            data = mProcessorData[proc_id];
             status = SUCCESS;
         } else {
-#ifdef DEBUG
-            std::cout << "Invalid processor: " << proc_id << std::endl;
+#ifdef MMS_DEBUG
+            std::cout << "mms) Reading invalid processor: " << proc_id << std::endl;
 #endif
         }
         return status;
@@ -134,15 +140,16 @@ private:
     {
         ac_tlm_rsp_status status = ERROR;
         if ( proc_id < NPROCS ) {
-#ifdef DEBUG
-            std::cout << "Starting processor: " << proc_id << std::endl;
-#endif
-            mProcessorData[proc_id] = data;
+            uint32_t* pData = (uint32_t*)&mProcessorData[proc_id*4];
+            *pData = *((uint32_t *) &data);
             mProcessors[proc_id]->ISA.ResumeProcessor();
+#ifdef MMS_DEBUG
+            std::cout << "mms) Starting processor. pid=" << proc_id << ", data=" << data << " newData=" << *pData << std::endl;
+#endif
             status = SUCCESS;
         } else {
-#ifdef DEBUG
-            std::cout << "Invalid processor: " << proc_id << std::endl;
+#ifdef MMS_DEBUG
+            std::cout << "mms) Starting invalid processor: " << proc_id << std::endl;
 #endif
         }
         return status;
@@ -151,15 +158,16 @@ private:
     {
         ac_tlm_rsp_status status = ERROR;
         if ( proc_id < NPROCS ) {
-#ifdef DEBUG
-            std::cout << "Stopping processor: " << proc_id << std::endl;
-#endif
-            mProcessorData[proc_id] = data;
+            uint32_t* pData = (uint32_t*)&mProcessorData[proc_id*4];
+            *pData = *((uint32_t *) &data);
             mProcessors[proc_id]->ISA.PauseProcessor();
+#ifdef MMS_DEBUG
+            std::cout << "mms) Stopping processor. pid=" << proc_id << ", data=" << data << std::endl;
+#endif
             status = SUCCESS;
         } else {
-#ifdef DEBUG
-            std::cout << "Invalid processor: " << proc_id << std::endl;
+#ifdef MMS_DEBUG
+            std::cout << "mms) Stopping invalid processor: " << proc_id << std::endl;
 #endif
         }
         return status;
@@ -170,7 +178,7 @@ public:
 
 private:
     T*          mProcessors[NPROCS];
-    uint32_t    mProcessorData[NPROCS];
+    uint8_t     mProcessorData[4*NPROCS];
     int         mArgC;
     char**      mArgV[NPROCS];
 };
