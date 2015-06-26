@@ -24,3 +24,14 @@ O primeiro comando (_make all_) compila toda a plataforma, incluindo as pastas c
 ## O que configurar? ##
 
 Se copiar esta pasta inteira para dentro de um computador do IC-3, ela deve continuar funcionando. Caso queira ter uma versão no seu notebook, você deve configurar as primeiras linhas do _Makefile_ principal do pacote. Não deve ser necessário copiar nada além deste arquivo. No entanto, é necessário ter SystemC, ArchC e os cross-compilers já instalados nesta outra máquina. Veja as instruções para instalação na página da disciplina.
+
+# Execução do projeto
+
+Duas aplicações estão disponíveis para teste: sha\_driver e app\_demo
+A aplicação padrão a ser executada será a app\_demo.
+Para executar a aplicação sha\_driver, a variável de ambiente SHA deve ser exportada antes da execução da aplicação através dos comandos:
+
+{
+make
+make run
+}

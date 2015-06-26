@@ -5,11 +5,17 @@ CC = mips-elf-gcc
 CFLAGS = -msoft-float -specs=archc
 LDFLAGS = -lm
 
+ifdef SHA
 LIBS := uos pthread sha
 SRCS := main.c sha_driver.c
+TARGET = sha_driver.mips
+else
+LIBS := uos pthread app
+SRCS := main.c
+TARGET = demo_app.mips
+endif
 OBJS := $(SRCS:.c=.o)
 
-TARGET = sha_driver.mips
 INC_DIR := -I. $(foreach lib, $(LIBS), -I./$(lib))
 LIB_DIR := $(foreach lib, $(LIBS), -L./$(lib))
 LDFLAGS = -lm $(foreach lib, $(LIBS), -l$(lib))

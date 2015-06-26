@@ -35,6 +35,13 @@ export CFLAGS:=-g
 
 export CC:=g++
 
+ifdef SHA
+export SHA=1
+APP_TARGET=sha_driver.mips
+else
+APP_TARGET=app_demo.mips
+endif
+
 all: 
 	for c in $(COMPONENTS); do echo " => Making" $$c ...; \
 	    cd $$c; $(MAKE); cd ..; done
@@ -65,10 +72,7 @@ main.o:
 #all: $(EXE)
 #------------------------------------------------------
 run: $(EXE)
-	./$(EXE) --load=sw/demo_app.mips
-#------------------------------------------------------
-sha: $(EXE)
-	./$(EXE) --load=sw/sha_driver.mips -S
+	./$(EXE) --load=sw/$(APP_TARGET) -S
 #------------------------------------------------------
 distclean: clean
 #------------------------------------------------------
