@@ -20,12 +20,13 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include "../lib_pthread.h"
+#include "pthread.h"
 #include "sha.h"
 
 #define MAX_NO_FILES 16
 #define MAX_WORKERS 8
-#define PRINT 0
+#define PRINT 1
+#define PARALLEL 0
 
 
 typedef struct Params {
@@ -40,15 +41,14 @@ struct fileData{
 	  int size;
 }Tdata[MAX_NO_FILES];
 
-char* in_file_list[]={"sw/sha/in_file1.asc",NULL};//,"in_file2.asc","in_file3.asc","in_file4.asc","in_file5.asc","in_file6.asc","in_file7.asc","in_file8.asc","in_file9.asc","in_file10.asc","in_file11.asc","in_file12.asc","in_file13.asc","in_file14.asc","in_file15.asc","in_file16.asc",NULL};
-char* out_file_list[]={"sw/sha/out_file1.txt",NULL};//,"out_file2.txt","out_file3.txt","out_file4.txt","out_file5.txt","out_file6.txt","out_file7.txt","out_file8.txt",NULL};
-
+char* in_file_list[]={"in_file1.asc","in_file2.asc","in_file3.asc","in_file4.asc","in_file5.asc","in_file6.asc","in_file7.asc","in_file8.asc","in_file9.asc","in_file10.asc","in_file11.asc","in_file12.asc","in_file13.asc","in_file14.asc","in_file15.asc","in_file16.asc",NULL};
+char* out_file_list[]={"out_file1.txt","out_file2.txt","out_file3.txt","out_file4.txt","out_file5.txt","out_file6.txt","out_file7.txt","out_file8.txt","out_file9.txt","out_file10.txt","out_file11.txt","out_file12.txt","out_file13.txt","out_file14.txt","out_file15.txt","out_file16.txt",NULL};
 
 int no_files=16;
 int no_workers=8;
 
-pthread_attr_t string_attr;
-pthread_mutex_t string_mutex;
+//pthread_attr_t string_attr;
+//pthread_mutex_t string_mutex;
 pthread_t workers[MAX_WORKERS]; 
 
 static int partition_size;
@@ -60,8 +60,10 @@ void readFilesData(){
 	int index;
 	 
 	 for ( index=0; index<no_files; index++){
-	      if ((fin = fopen(in_file_list[index], "rb")) == NULL) {
-					printf("Error opening %s for reading\n", in_file_list[index]);
+	 	char buf[256];
+	 	snprintf(buf, 256, "sw/input/%s", in_file_list[index]);
+	      if ((fin = fopen(buf, "rb")) == NULL) {
+					printf("Error opening %s for reading\n", buf);
 					}		
 	 			// Calculate File Size
     		fseek(fin, 0, SEEK_END);
@@ -86,7 +88,7 @@ void compute_digest(int index){
 	    	sha_stream(&sha_info, Tdata[index].data,Tdata[index].size);
 				
 				if (PRINT)			{
-				   sha_print(&sha_info);	
+				   sha_print_to_file(&sha_info, fopen(out_file_list[index], "w"));	
 				}
 				 		 
 }
@@ -108,16 +110,16 @@ void *parallel_SHA_Dig_Calc(void *params){
 
 void init_workers(){
 	
-	pthread_attr_init(&string_attr);
-	pthread_mutex_init(&string_mutex,NULL);
-	pthread_attr_setdetachstate(&string_attr,PTHREAD_CREATE_JOINABLE);
+	//pthread_attr_init(&string_attr);
+	//pthread_mutex_init(&string_mutex,NULL);
+	//pthread_attr_setdetachstate(&string_attr,PTHREAD_CREATE_JOINABLE);
 	
 }
 
 void createWorkers(){
 	long index;
 	for ( index= 0 ; index<no_workers; index++){
-		    pthread_create(&workers[index],&string_attr,parallel_SHA_Dig_Calc,(void *)&paramsArr[index]);
+		    pthread_create(&workers[index],NULL,parallel_SHA_Dig_Calc,(void *)&paramsArr[index]);
 	}
 	
 }
@@ -201,48 +203,16 @@ void sequential_process(){
 }
 
 
-int main(int argc,char *argv[])
+int application_entry(int argc,char *argv[])
 {
-	char *token;
-      if (argc<2 ||argc>3){
-      	  printf("|-----------------------------------------------------------------------|\n");
-      	  printf("	Error: Insufficient Parameters.                             \n");
-      	  printf("	Maximum Workers are 8. Number of workers should be even!\n");
-      	  printf("	Commands to run!                             \n");
-      	  printf("	Command Format: OjbectFileName -Sequential(S)/Parallel(P) -Workers!\n");
-      	  printf("	Example: sequential SHA: ' ./sha -S   '!                             \n");
-      	  printf("	Example: parallel SHA  : ' ./sha -P -2 '!\n");
-      	  printf("|---------------------------------------------------------------------- |\n");
-      	  exit(0);
-      }else {
-      	    
-      	    token=argv[1];
-      	    if (*token=='-') {
-      	    	   token++;
-      	    	  if (strcmp(token,"S")==0){
-      	    	  	    readFilesData();
-			      	    	   sequential_process();
-			      	    }else if (strcmp(token, "P")==0){
-			      	    	     token= argv[2];
-			      	    	     token++;
-			      	    	     if (isdigit(*token)!=0){
-			      	    	         no_workers= atoi(token);
-			      	    	    		 /*if (no_workers%2 != 0 || no_workers >MAX_WORKERS)
-			      	    	    		     printf("ERROR: Number of worker should be even and no more than 8\n");
-			      	    	    		 else {*/
-			      	    	    		 	   readFilesData();
-			      	                   parallel_process();	
-			      	               //}
-			      	          }else{
-			      	          	printf("ERROR: Invalid number of workers\n");
-			      	          }
-			      	  	}else {
-			      	  		  printf("ERROR: Unknown Parameters!\n");
-			      	  	}//end-if	  	
-      	  }else {
-      	  	 printf("ERROR: Unknown Parameters!\n");
-      	  }
-      	  	
-      }
+
+	if(PARALLEL) {
+		no_workers = 8;
+		readFilesData();
+		parallel_process();
+	} else {
+		readFilesData();
+		sequential_process();
+	}
     return(0);
 }

@@ -22,7 +22,7 @@ class memory_lock
     ,   public ac_tlm_transport_if
 {
 public:
-    memory_lock(sc_module_name module_name, int k = 5242880);
+    memory_lock(sc_module_name module_name, int k);
     ~memory_lock();
 
     ac_tlm_rsp transport(const ac_tlm_req&);

@@ -4,13 +4,13 @@
 # To use NIST's modified SHA of 7/11/94, define USE_MODIFIED_SHA
 
 CC = mips-elf-gcc
+AR = mips-elf-ar
 CFLAGS = -msoft-float -specs=archc
-LDFLAGS = -lm
 
-TARGET = sha.mips
+TARGET = sha
 INC_DIR := -I.
 
-SRCS := sha.c sha_driver.c ../lib_pthread.c
+SRCS := sha.c
 OBJS := $(SRCS:.c=.o)
 
 #------------------------------------------------------
@@ -21,10 +21,10 @@ OBJS := $(SRCS:.c=.o)
 
 #------------------------------------------------------
 all: $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) -o $(TARGET) $(LDFLAGS)
+	$(AR) -r lib$(TARGET).a $(OBJS)
 #------------------------------------------------------
 clean:
-	rm -f *.o *~ $(TARGET) sha out*
+	rm -f *.o *~ lib$(TARGET).a sha out*
 #------------------------------------------------------
 distclean: clean
 #------------------------------------------------------

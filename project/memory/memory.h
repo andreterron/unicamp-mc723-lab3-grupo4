@@ -105,7 +105,7 @@ public:
    * @param k Memory size in kilowords.
    *
    */
-  ac_tlm_mem( sc_module_name module_name , int k = 5242880 );
+  ac_tlm_mem( sc_module_name module_name , int k );
 
   /**
    * Default destructor.

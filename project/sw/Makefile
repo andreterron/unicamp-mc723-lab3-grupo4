@@ -5,13 +5,11 @@ CC = mips-elf-gcc
 CFLAGS = -msoft-float -specs=archc
 LDFLAGS = -lm
 
-SUB_FOLDERS = sha
-
-LIBS := uos pthread app
-SRCS := main.c
+LIBS := uos pthread sha
+SRCS := main.c sha_driver.c
 OBJS := $(SRCS:.c=.o)
 
-TARGET = demo_app.mips
+TARGET = sha_driver.mips
 INC_DIR := -I. $(foreach lib, $(LIBS), -I./$(lib))
 LIB_DIR := $(foreach lib, $(LIBS), -L./$(lib))
 LDFLAGS = -lm $(foreach lib, $(LIBS), -l$(lib))
@@ -23,8 +21,6 @@ LDFLAGS = -lm $(foreach lib, $(LIBS), -l$(lib))
 .SUFFIXES: .o .c .h
 
 all:
-	for a in $(SUB_FOLDERS); do echo " => Making" $$a ...; \
-	    cd $$a; $(MAKE); cd ..; done
 	for lib in $(LIBS); do echo "   => Making" $$lib ...;\
 		cd $$lib; $(MAKE); cd ..; done
 	echo "   => Making exe ..."

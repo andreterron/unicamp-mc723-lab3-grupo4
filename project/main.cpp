@@ -33,9 +33,9 @@ int sc_main(int ac, char *av[])
     // Bus
     ac_tlm_bus bus("bus");
     // Memory
-    ac_tlm_mem mem("mem");
+    ac_tlm_mem mem("mem", 0x800000 >> 1);
     // Memory lock
-    memory_lock lock("memory_lock");
+    memory_lock lock("memory_lock", 0x800000 >> 1);
     // ISA simulator
     multiprocessor<mips, 8> multimips("multimips");
 
